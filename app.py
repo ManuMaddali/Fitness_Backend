@@ -1,7 +1,6 @@
 import os
 import logging
 import openai
-from openai.error import OpenAIError
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 
