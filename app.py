@@ -1,6 +1,6 @@
 import os
 import logging
-from openai import OpenAI
+import openai
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 
