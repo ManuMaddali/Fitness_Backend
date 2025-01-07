@@ -1,14 +1,36 @@
+import os
+import openai
 from flask import Flask, request, jsonify
+from dotenv import load_dotenv
 
+# Load environment variables
+load_dotenv()
+
+# Set OpenAI API key
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+# Initialize Flask app
 app = Flask(__name__)
 
+# Home route
 @app.route('/', methods=['GET'])
 def home():
     return jsonify({"message": "Welcome to the Fitness Backend!"})
 
-if __name__ == '__main__':
-    app.run(debug=True)
+# AI coach route
+@app.route('/api/coach', methods=['POST'])
+def ai_coach():
+    data = request.json
+    user_query = data['query']
 
+    response = openai.Completion.create(
+        engine="text-davinci-003",
+        prompt=f"User query: {user_query}. Provide fitness and nutrition advice.",
+        max_tokens=150
+    )
+    return jsonify({"response": response.choices[0].text.strip()})
+
+# TDEE calculation route
 @app.route('/api/tdee', methods=['POST'])
 def calculate_tdee():
     data = request.json
@@ -23,3 +45,6 @@ def calculate_tdee():
 
     return jsonify({"tdee": round(tdee)})
 
+# Run Flask app
+if __name__ == '__main__':
+    app.run(debug=True)
