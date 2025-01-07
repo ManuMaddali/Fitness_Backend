@@ -1,6 +1,7 @@
 import os
 import logging
 import openai
+from openai.error import OpenAIError, RateLimitError, InvalidRequestError
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 
@@ -45,7 +46,7 @@ def ai_coach():
     user_query = data['query']
     if not any(keyword in user_query.lower() for keyword in fitness_keywords):
         return jsonify({"error": "The query does not seem related to fitness or nutrition. Please ask relevant questions."}), 400
-
+    
     try:
         # Log the incoming query
         logging.info(f"Received query: {user_query}")
