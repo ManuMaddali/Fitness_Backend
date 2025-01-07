@@ -70,10 +70,6 @@ def ai_coach():
         # Return the AI-generated response
         return jsonify({"response": response['choices'][0]['message']['content'].strip()})
 
-    except OpenAIError as e:
-    # Handle OpenAI-related errors (e.g., rate limits, invalid requests)
-        logging.error(f"OpenAI error: {str(e)}")
-        return jsonify({"error": f"OpenAI error: {str(e)}"}), 500
     except Exception as e:
     # Handle all other unexpected errors
         logging.error(f"Unexpected error: {str(e)}")
