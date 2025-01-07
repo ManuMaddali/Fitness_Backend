@@ -1,7 +1,7 @@
 import os
 import logging
 import openai
-from openai.error import OpenAIError, RateLimitError, InvalidRequestError
+from openai.error import OpenAIError
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 
@@ -70,15 +70,12 @@ def ai_coach():
         # Return the AI-generated response
         return jsonify({"response": response['choices'][0]['message']['content'].strip()})
 
-    except openai.error.RateLimitError:
-        return jsonify({"error": "Rate limit exceeded. Please try again later."}), 429
-    except openai.error.InvalidRequestError as e:
-        logging.error(f"Invalid OpenAI request: {str(e)}")
-        return jsonify({"error": f"Invalid request: {str(e)}"}), 400
-    except openai.error.OpenAIError as e:
-        logging.error(f"OpenAI API error: {str(e)}")
-        return jsonify({"error": f"OpenAI API error: {str(e)}"}), 500
+    except OpenAIError as e:
+    # Handle OpenAI-related errors (e.g., rate limits, invalid requests)
+        logging.error(f"OpenAI error: {str(e)}")
+        return jsonify({"error": f"OpenAI error: {str(e)}"}), 500
     except Exception as e:
+    # Handle all other unexpected errors
         logging.error(f"Unexpected error: {str(e)}")
         return jsonify({"error": "An unexpected error occurred. Please try again later."}), 500
 
