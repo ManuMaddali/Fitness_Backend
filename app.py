@@ -27,7 +27,7 @@ def ai_coach():
     response = client.chat.completions.create(model="gpt-3.5-turbo",  # Specify the model
     messages=[
         {"role": "system", "content": "You are a helpful fitness and nutrition assistant."},
-        {"role": "user", "content": user_query}
+        {"role": "user", "content":"Summarize how to gain muscle in a few sentences."}
     ],
     max_tokens=150)
     return jsonify({"response": response.choices[0].message.content.strip()})
