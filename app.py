@@ -23,12 +23,16 @@ def ai_coach():
     data = request.json
     user_query = data['query']
 
-    response = openai.Completion.create(
-        engine="text-davinci-003",
-        prompt=f"User query: {user_query}. Provide fitness and nutrition advice.",
+    # Use ChatCompletion instead of Completion
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",  # Specify the model
+        messages=[
+            {"role": "system", "content": "You are a helpful fitness and nutrition assistant."},
+            {"role": "user", "content": user_query}
+        ],
         max_tokens=150
     )
-    return jsonify({"response": response.choices[0].text.strip()})
+    return jsonify({"response": response['choices'][0]['message']['content'].strip()})
 
 # TDEE calculation route
 @app.route('/api/tdee', methods=['POST'])
