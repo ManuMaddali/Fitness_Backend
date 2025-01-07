@@ -15,7 +15,7 @@ app = Flask(__name__)
 # Home route
 @app.route('/', methods=['GET'])
 def home():
-    return jsonify({"message": "Welcome to the Fitness Backend!"})
+    return jsonify({"message": "Welcome to the Fitnes Backend!"})
 
 # AI coach route
 @app.route('/api/coach', methods=['POST'])
