@@ -1,6 +1,6 @@
 import os
 import logging
-from openai import OpenAI
+import openai
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 
@@ -8,7 +8,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Set OpenAI API key
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+# Configure logging globally
+logging.basicConfig(level=logging.INFO)
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -16,15 +19,11 @@ app = Flask(__name__)
 # Home route
 @app.route('/', methods=['GET'])
 def home():
-    return jsonify({"message": "Welcome to the Fitnes Backend!"})
+    return jsonify({"message": "Welcome to the Fitness Backend!"})
 
 # AI coach route
 @app.route('/api/coach', methods=['POST'])
 def ai_coach():
-    # Debug Logging
-    import logging
-    logging.basicConfig(level=logging.INFO)
-
     # Ensure the request body is JSON
     if not request.is_json:
         return jsonify({"error": "Request body must be in JSON format."}), 400
@@ -40,13 +39,11 @@ def ai_coach():
         return jsonify({"error": "The 'query' field exceeds the maximum allowed length of 500 characters."}), 400
 
     # Query context validation (check for fitness-related keywords)
-    def validate_query(query):
-        fitness_keywords = ["workout", "exercise", "diet", "nutrition", "gain muscle", "lose weight", "fitness", "calories", "macros", "workout plan", "meal plan", "water intake", "protein", "carbs", "fats"]
-        return any(keyword in query.lower() for keyword in fitness_keywords)
-
+    fitness_keywords = {"workout", "exercise", "diet", "nutrition", "gain muscle", "lose weight", 
+                        "fitness", "calories", "macros", "workout plan", "meal plan", 
+                        "water intake", "protein", "carbs", "fats"}
     user_query = data['query']
-
-    if not validate_query(user_query):
+    if not any(keyword in user_query.lower() for keyword in fitness_keywords):
         return jsonify({"error": "The query does not seem related to fitness or nutrition. Please ask relevant questions."}), 400
 
     try:
@@ -73,37 +70,48 @@ def ai_coach():
         return jsonify({"response": response['choices'][0]['message']['content'].strip()})
 
     except openai.error.RateLimitError:
-        # Handle rate limit errors
         return jsonify({"error": "Rate limit exceeded. Please try again later."}), 429
     except openai.error.InvalidRequestError as e:
-        # Handle invalid OpenAI requests
         logging.error(f"Invalid OpenAI request: {str(e)}")
         return jsonify({"error": f"Invalid request: {str(e)}"}), 400
     except openai.error.OpenAIError as e:
-        # Handle generic OpenAI API errors
         logging.error(f"OpenAI API error: {str(e)}")
         return jsonify({"error": f"OpenAI API error: {str(e)}"}), 500
     except Exception as e:
-        # Handle all other unexpected errors
         logging.error(f"Unexpected error: {str(e)}")
         return jsonify({"error": "An unexpected error occurred. Please try again later."}), 500
-
 
 # TDEE calculation route
 @app.route('/api/tdee', methods=['POST'])
 def calculate_tdee():
+    if not request.is_json:
+        return jsonify({"error": "Request body must be in JSON format."}), 400
+
     data = request.json
-    weight = data['weight']
-    height = data['height']
-    age = data['age']
-    activity_factor = data['activity_factor']
+    try:
+        weight = float(data['weight'])
+        height = float(data['height'])
+        age = int(data['age'])
+        activity_factor = float(data['activity_factor'])
 
-    # Calculate TDEE using the Mifflin-St Jeor equation
-    tdee = (10 * weight) + (6.25 * height) - (5 * age) + 5
-    tdee *= activity_factor
+        if not (20 <= weight <= 300):
+            return jsonify({"error": "Weight must be between 20 and 300 kg."}), 400
+        if not (50 <= height <= 250):
+            return jsonify({"error": "Height must be between 50 and 250 cm."}), 400
+        if not (1 <= age <= 120):
+            return jsonify({"error": "Age must be between 1 and 120 years."}), 400
+        if not (1.2 <= activity_factor <= 2.5):
+            return jsonify({"error": "Activity factor must be between 1.2 and 2.5."}), 400
 
-    return jsonify({"tdee": round(tdee)})
+        # Calculate TDEE
+        tdee = (10 * weight) + (6.25 * height) - (5 * age) + 5
+        tdee *= activity_factor
+
+        return jsonify({"tdee": round(tdee)})
+
+    except (KeyError, ValueError):
+        return jsonify({"error": "Invalid or missing input fields. Ensure weight, height, age, and activity_factor are provided and valid."}), 400
 
 # Run Flask app
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    app.run(debug=True, host='127.0.0.1', port=5001)
