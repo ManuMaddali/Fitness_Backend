@@ -1,5 +1,5 @@
 import os
-import openai
+from openai import OpenAI
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 
@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Set OpenAI API key
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -24,15 +24,13 @@ def ai_coach():
     user_query = data['query']
 
     # Use ChatCompletion instead of Completion
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",  # Specify the model
-        messages=[
-            {"role": "system", "content": "You are a helpful fitness and nutrition assistant."},
-            {"role": "user", "content": user_query}
-        ],
-        max_tokens=150
-    )
-    return jsonify({"response": response['choices'][0]['message']['content'].strip()})
+    response = client.chat.completions.create(model="gpt-3.5-turbo",  # Specify the model
+    messages=[
+        {"role": "system", "content": "You are a helpful fitness and nutrition assistant."},
+        {"role": "user", "content": user_query}
+    ],
+    max_tokens=150)
+    return jsonify({"response": response.choices[0].message.content.strip()})
 
 # TDEE calculation route
 @app.route('/api/tdee', methods=['POST'])
