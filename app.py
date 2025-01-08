@@ -1,8 +1,5 @@
 import os
-import logging
 from openai import OpenAI
-
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 
@@ -10,9 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Set OpenAI API key
-
-# Configure logging globally
-logging.basicConfig(level=logging.INFO)
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -25,87 +20,104 @@ def home():
 # AI coach route
 @app.route('/api/coach', methods=['POST'])
 def ai_coach():
-    # Ensure the request body is JSON
-    if not request.is_json:
-        return jsonify({"error": "Request body must be in JSON format."}), 400
-
     data = request.json
-
-    # Check if the query field exists and is not empty
-    if 'query' not in data or not data['query'].strip():
-        return jsonify({"error": "The 'query' field is required and cannot be empty."}), 400
-
-    # Validate query length
-    if len(data['query']) > 500:
-        return jsonify({"error": "The 'query' field exceeds the maximum allowed length of 500 characters."}), 400
-
-    # Query context validation (check for fitness-related keywords)
-    fitness_keywords = {"workout", "exercise", "diet", "nutrition", "gain muscle", "lose weight", 
-                        "fitness", "calories", "macros", "workout plan", "meal plan", 
-                        "water intake", "protein", "carbs", "fats"}
     user_query = data['query']
-    if not any(keyword in user_query.lower() for keyword in fitness_keywords):
-        return jsonify({"error": "The query does not seem related to fitness or nutrition. Please ask relevant questions."}), 400
 
-    try:
-        # Log the incoming query
-        logging.info(f"Received query: {user_query}")
-
-        # Adjust token usage dynamically based on query complexity
-        max_tokens = 75 if len(user_query) < 50 else 150
-
-        # OpenAI API Call
-        response = client.chat.completions.create(model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are a helpful fitness and nutrition assistant. Always provide short and concise answers."},
-            {"role": "user", "content": user_query}
-        ],
-        max_tokens=max_tokens)
-
-        # Log the response from OpenAI
-        logging.info(f"OpenAI response: {response}")
-
-        # Return the AI-generated response
-        return jsonify({"response": response.choices[0].message.content.strip()})
-
-    except Exception as e:
-        # Log and return the error for debugging
-        logging.error(f"Error during OpenAI API call: {str(e)}")
-        return jsonify({"error": f"Error: {str(e)}"}), 500
-
+    # Use ChatCompletion instead of Completion
+    response = client.chat.completions.create(model="gpt-3.5-turbo",  # Specify the model
+    messages=[
+        {"role": "system", "content": "You are a helpful fitness and nutrition assistant. Always provide concise answers."},
+        {"role": "user", "content": user_query}
+    ],
+    max_tokens=150)
+    return jsonify({"response": response.choices[0].message.content.strip()})
 
 # TDEE calculation route
 @app.route('/api/tdee', methods=['POST'])
 def calculate_tdee():
-    if not request.is_json:
-        return jsonify({"error": "Request body must be in JSON format."}), 400
-
     data = request.json
-    try:
-        weight = float(data['weight'])
-        height = float(data['height'])
-        age = int(data['age'])
-        activity_factor = float(data['activity_factor'])
+    weight = data['weight']
+    height = data['height']
+    age = data['age']
+    activity_factor = data['activity_factor']
 
-        if not (20 <= weight <= 300):
-            return jsonify({"error": "Weight must be between 20 and 300 kg."}), 400
-        if not (50 <= height <= 250):
-            return jsonify({"error": "Height must be between 50 and 250 cm."}), 400
-        if not (1 <= age <= 120):
-            return jsonify({"error": "Age must be between 1 and 120 years."}), 400
-        if not (1.2 <= activity_factor <= 2.5):
-            return jsonify({"error": "Activity factor must be between 1.2 and 2.5."}), 400
+    # Calculate TDEE using the Mifflin-St Jeor equation
+    tdee = (10 * weight) + (6.25 * height) - (5 * age) + 5
+    tdee *= activity_factor
 
-        # Calculate TDEE
-        tdee = (10 * weight) + (6.25 * height) - (5 * age) + 5
-        tdee *= activity_factor
+    return jsonify({"tdee": round(tdee)})
+# Full Coach Route
+@app.route('/api/full_coach', methods=['POST'])
+def full_coach():
+    data = request.json
 
-        return jsonify({"tdee": round(tdee)})
+    # Extract inputs
+    weight_lbs = data.get('weight')  # in lbs
+    height_feet = data.get('height_feet')  # in feet
+    height_inches = data.get('height_inches')  # in inches
+    age = data.get('age')  # in years
+    activity_factor = data.get('activity_factor')  # multiplier for activity level
+    gender = data.get('gender', '').lower()  # 'male' or 'female'
 
-    except (KeyError, ValueError) as e:
-        logging.error(f"Invalid or missing input fields: {str(e)}")
-        return jsonify({"error": "Invalid or missing input fields. Ensure weight, height, age, and activity_factor are provided and valid."}), 400
+    # Validate inputs
+    if not all([weight_lbs, height_feet, height_inches, age, activity_factor, gender]):
+        return jsonify({"error": "Missing required fields: weight, height_feet, height_inches, age, activity_factor, or gender"}), 400
+
+    # Convert weight from lbs to kg
+    weight_kg = weight_lbs / 2.20462
+
+    # Convert height from feet and inches to cm
+    height_cm = ((height_feet * 12) + height_inches) * 2.54
+
+    # Calculate TDEE using Mifflin-St Jeor equation
+    tdee = (10 * weight_kg) + (6.25 * height_cm) - (5 * age) + (5 if gender == 'male' else -161)
+    tdee *= activity_factor
+
+    # Calculate BMI
+    height_m = height_cm / 100  # Convert height to meters
+    bmi = weight_kg / (height_m ** 2)
+
+    # Calculate BFP
+    bfp = 1.20 * bmi + 0.23 * age - (16.2 if gender == 'male' else 5.4)
+
+    # Calculate BMR
+    bmr = (10 * weight_kg) + (6.25 * height_cm) - (5 * age) + (5 if gender == 'male' else -161)
+
+    # Calculate Ideal Body Weight (IBW)
+    height_total_inches = (height_feet * 12) + height_inches
+    ibw = (50 + 2.3 * (height_total_inches - 60)) if gender == 'male' else (45.5 + 2.3 * (height_total_inches - 60))
+
+    # Calculate Hydration Needs
+    hydration = weight_kg * 0.033  # in liters per day
+
+    # Generate AI advice
+    user_query = data.get('query', '')  # User's specific question
+    combined_query = (
+        f"My TDEE is {round(tdee)} calories per day, my BMI is {round(bmi, 2)}, "
+        f"my body fat percentage is {round(bfp, 2)}%, and my ideal body weight is {round(ibw, 1)} kg. "
+        f"Additionally, I need {round(hydration, 2)} liters of water daily. {user_query}"
+    )
+
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are a fitness coach. Provide advice based on the user's TDEE, BMI, BFP, IBW, and hydration needs. Keep your answer short and concise."},
+            {"role": "user", "content": combined_query}
+        ],
+        max_tokens=300
+    )
+
+    # Respond with all calculations and AI advice
+    return jsonify({
+        "tdee": round(tdee),
+        "bmi": round(bmi, 2),
+        "bfp": round(bfp, 2),
+        "bmr": round(bmr),
+        "ibw": round(ibw, 1),
+        "hydration": round(hydration, 2),
+        "advice": response['choices'][0]['message']['content'].strip()
+    })
 
 # Run Flask app
 if __name__ == '__main__':
-    app.run(debug=True, host='127.0.0.1', port=5001)
+    app.run(debug=True, host='0.0.0.0', port=5001)
