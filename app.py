@@ -45,7 +45,7 @@ def ai_coach():
     user_query = data['query']
     if not any(keyword in user_query.lower() for keyword in fitness_keywords):
         return jsonify({"error": "The query does not seem related to fitness or nutrition. Please ask relevant questions."}), 400
-
+    
     try:
         # Log the incoming query
         logging.info(f"Received query: {user_query}")
@@ -69,19 +69,14 @@ def ai_coach():
         # Return the AI-generated response
         return jsonify({"response": response['choices'][0]['message']['content'].strip()})
 
-    except openai.error.RateLimitError as e:
-        logging.error(f"Rate limit exceeded: {str(e)}")
-        return jsonify({"error": "Rate limit exceeded. Please try again later."}), 429
-    except openai.error.InvalidRequestError as e:
-        logging.error(f"Invalid OpenAI request: {str(e)}")
-        return jsonify({"error": f"Invalid request: {str(e)}"}), 400
-    except openai.error.OpenAIError as e:
-        logging.error(f"OpenAI API error: {str(e)}")
-        return jsonify({"error": f"OpenAI API error: {str(e)}"}), 500
+    except openai.OpenAIError as e:
+    # Handle OpenAI-related errors (e.g., rate limits, invalid requests)
+        logging.error(f"OpenAI error: {str(e)}")
+        return jsonify({"error": f"OpenAI error: {str(e)}"}), 500
     except Exception as e:
-        # Handle all other unexpected errors
+    # Handle all other unexpected errors
         logging.error(f"Unexpected error: {str(e)}")
-        return jsonify({"error": "An unexpected error occurred. Please try again later."}), 500
+    return jsonify({"error": "An unexpected error occurred. Please try again later."}), 500
 
 # TDEE calculation route
 @app.route('/api/tdee', methods=['POST'])
