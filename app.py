@@ -45,7 +45,7 @@ def ai_coach():
     user_query = data['query']
     if not any(keyword in user_query.lower() for keyword in fitness_keywords):
         return jsonify({"error": "The query does not seem related to fitness or nutrition. Please ask relevant questions."}), 400
-    
+
     try:
         # Log the incoming query
         logging.info(f"Received query: {user_query}")
@@ -70,9 +70,10 @@ def ai_coach():
         return jsonify({"response": response['choices'][0]['message']['content'].strip()})
 
     except Exception as e:
-    # Log and return the error for debugging
+        # Log and return the error for debugging
         logging.error(f"Error during OpenAI API call: {str(e)}")
-    return jsonify({"error": f"Error: {str(e)}"}), 500
+        return jsonify({"error": f"Error: {str(e)}"}), 500
+
 
 # TDEE calculation route
 @app.route('/api/tdee', methods=['POST'])
