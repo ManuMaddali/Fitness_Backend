@@ -69,14 +69,10 @@ def ai_coach():
         # Return the AI-generated response
         return jsonify({"response": response['choices'][0]['message']['content'].strip()})
 
-    except openai.OpenAIError as e:
-    # Handle OpenAI-related errors (e.g., rate limits, invalid requests)
-        logging.error(f"OpenAI error: {str(e)}")
-        return jsonify({"error": f"OpenAI error: {str(e)}"}), 500
     except Exception as e:
-    # Handle all other unexpected errors
-        logging.error(f"Unexpected error: {str(e)}")
-    return jsonify({"error": "An unexpected error occurred. Please try again later."}), 500
+    # Log and return the error for debugging
+        logging.error(f"Error during OpenAI API call: {str(e)}")
+    return jsonify({"error": f"Error: {str(e)}"}), 500
 
 # TDEE calculation route
 @app.route('/api/tdee', methods=['POST'])
