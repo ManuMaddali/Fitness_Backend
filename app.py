@@ -1,6 +1,8 @@
 import os
 import logging
-import openai
+from openai import OpenAI
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 
@@ -8,7 +10,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Set OpenAI API key
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Configure logging globally
 logging.basicConfig(level=logging.INFO)
@@ -54,20 +55,18 @@ def ai_coach():
         max_tokens = 75 if len(user_query) < 50 else 150
 
         # OpenAI API Call
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a helpful fitness and nutrition assistant. Always provide short and concise answers."},
-                {"role": "user", "content": user_query}
-            ],
-            max_tokens=max_tokens
-        )
+        response = client.chat.completions.create(model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are a helpful fitness and nutrition assistant. Always provide short and concise answers."},
+            {"role": "user", "content": user_query}
+        ],
+        max_tokens=max_tokens)
 
         # Log the response from OpenAI
         logging.info(f"OpenAI response: {response}")
 
         # Return the AI-generated response
-        return jsonify({"response": response['choices'][0]['message']['content'].strip()})
+        return jsonify({"response": response.choices[0].message.content.strip()})
 
     except Exception as e:
         # Log and return the error for debugging
