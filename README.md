@@ -53,25 +53,6 @@ The `/api/full_coach` endpoint is enhanced by:
 
 This combination enables a conversational AI coach that provides actionable, personalized advice, making it a cornerstone of the app's premium features.
 
-## 📂 File Structure
-
-```
-📦 fitness-backend
-├── app.py                  # Main application entry point
-├── auth.py                 # Authentication logic
-├── coach.py                # Coach endpoint with AI integration
-├── hydration.py            # Hydration tracker and endpoint
-├── register.py             # User registration logic
-├── login.py                # User login logic
-├── models.py               # Database models
-├── validation_utils.py     # Input validation utilities
-├── database_utils.py       # Database helper functions
-├── bmr.py                  # BMR and TDEE calculator
-├── Seed_prompt_templates.py # Seed data for prompt testing
-├── history.py              # User history tracking
-├── users.db                # SQLite database
-└── README.md               # Documentation
-```
 
 ## 📈 Highlights and Accomplishments
 
