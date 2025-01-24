@@ -61,6 +61,47 @@ This combination enables a conversational AI coach that provides actionable, per
 - **Scalable Architecture**: Organized code for future expansion, such as incorporating real-time fitness tracking or predictive analytics.
 - **Security First**: Implemented robust authentication mechanisms to safeguard user data.
 
+## Tree
+📁 Fitness_Backend
+├── 📁 instance
+│   ├── users.db             # Main SQLite database storing user data.
+│   ├── users_backup.db      # Backup of the database for safety and recovery.
+├── 📁 migrations
+│   ├── README               # Overview of migration scripts and usage.
+│   ├── alembic.ini          # Configuration file for Alembic, managing database migrations.
+│   ├── env.py               # Environment setup for Alembic migrations.
+│   ├── script.py.mako       # Template for generating migration scripts.
+├── 📁 routes
+│   ├── auth.py              # API routes for user authentication (login, signup, etc.).
+│   ├── bmr.py               # Endpoint for calculating Basal Metabolic Rate (BMR).
+│   ├── coach.py             # Core logic for fitness coaching functionality.
+│   ├── full_coach.py        # Advanced coaching features for premium users.
+│   ├── history.py           # Handles retrieval and management of user fitness history.
+│   ├── hydration.py         # Endpoint for tracking and calculating hydration needs.
+│   ├── login.py             # Dedicated login functionality.
+│   ├── register.py          # Handles user registration and account creation.
+│   ├── reset_history.py     # API route for resetting user history.
+├── 📁 static
+│                            # Placeholder for static files (e.g., images, CSS, JavaScript).
+├── 📁 templates
+│                            # Placeholder for HTML templates (if using a web interface).
+├── 📁 tests
+│   ├── __init__.py          # Marks the tests folder as a Python package.
+│   ├── conftest.py          # Shared fixtures and configuration for pytest.
+│   ├── test_auth.py         # Unit tests for authentication-related functionality.
+│   ├── test_coach.py        # Unit tests for the coaching module.
+│   ├── test_full_coach.py   # Tests for premium coaching features.
+│   ├── test_history.py      # Tests for user fitness history management.
+│   ├── test_reset_history.py # Tests for resetting user data and history.
+├── 📁 utils
+│   ├── auth_utils.py        # Helper functions for authentication processes.
+│   ├── database_utils.py    # Utility functions for database operations and queries.
+│   ├── validation_utils.py  # Validation logic for inputs and user data.
+│   ├── Seed_prompt_templates.py 
+│                            # Predefined prompt templates for generating dynamic responses.
+├── models.py                # Defines database models and ORM (Object-Relational Mapping) logic.
+├── app.py  
+
 ## 🧪 How to Run Locally
 
 1. **Clone the Repository**
