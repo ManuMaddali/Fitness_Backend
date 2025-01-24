@@ -61,7 +61,7 @@ This combination enables a conversational AI coach that provides actionable, per
 - **Scalable Architecture**: Organized code for future expansion, such as incorporating real-time fitness tracking or predictive analytics.
 - **Security First**: Implemented robust authentication mechanisms to safeguard user data.
 
-## Project Structure
+## 🌲 Project Structure
 ```plaintext
 Fitness_Backend
 ├── instance
