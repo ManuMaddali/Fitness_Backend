@@ -103,7 +103,7 @@ Fitness_Backend
 ├── models.py                  # Defines database models and ORM (Object-Relational Mapping) logic
 ├── app.py                     # Entry point of the application; initializes the app and routes
  
-
+```
 ## 🧪 How to Run Locally
 
 1. **Clone the Repository**
