@@ -1,5 +1,5 @@
 
-## Fitness App Backend
+## Fitness API
 
 Welcome to the **Fitness App Backend**, a feature-rich API designed to provide personalized fitness, nutrition, and wellness support. This project demonstrates my ability to leverage modern frameworks, cutting-edge AI technologies, and scalable development practices.
 
